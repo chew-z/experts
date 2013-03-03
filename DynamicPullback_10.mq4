@@ -6,7 +6,7 @@
 // 3)                                                                |
 // 4)                                                                |
 //+------------------------------------------------------------------+
-#property copyright "Dynamic Pullback 1.0 © 2012, 2013 chew-z"
+#property copyright "Dynamic Pullback 1.01 © 2012, 2013 chew-z"
 #include <TradeContext.mq4>
 #include <TradeTools.mqh>
 #include <stdlib.mqh>
@@ -62,7 +62,7 @@ if( isNewBar ) {
                      return(-1);   
                   OrderClose(OrderTicket(),OrderLots(), Bid, 5, Violet); // close position
                   TradeIsNotBusy();
-                  f_SendAlerts(orderComment + " trade exit attempted.\rResult = " + ErrorDescription(GetLastError()));
+                  f_SendAlerts(orderComment + " trade exit attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Ask, 5));
          }
          if(OrderType() == OP_SELL && ( isExit_S() && iBarShift(NULL, PERIOD_D1, OrderOpenTime(), false) > 2 )  )   {
                   RefreshRates();
@@ -70,7 +70,7 @@ if( isNewBar ) {
                      return(-1);   
                   OrderClose(OrderTicket(),OrderLots(), Ask, 5, Violet); // close position
                   TradeIsNotBusy();
-                  f_SendAlerts(orderComment + " trade exit attempted.\rResult = " + ErrorDescription(GetLastError()));
+                  f_SendAlerts(orderComment + " trade exit attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Bid, 5));
          }
          
       }
@@ -93,7 +93,7 @@ if( isNewBar ) {
                      return(-1);   
                   OrderModify(OrderTicket(),OrderOpenPrice(), OrderStopLoss(), TakeProfit, 0, Gold);
                   TradeIsNotBusy();
-                  AlertText = orderComment + " " + Symbol() + " BUY order modification attempted.\rResult = " + ErrorDescription(GetLastError());
+                  AlertText = orderComment + " " + Symbol() + " BUY order modification attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5);
                   f_SendAlerts(AlertText);                  
             }
          }
@@ -108,7 +108,7 @@ if( isNewBar ) {
                      return(-1);   
                   OrderModify(OrderTicket(),OrderOpenPrice(), OrderStopLoss(), TakeProfit, 0, Gold);
                   TradeIsNotBusy();
-                  AlertText = orderComment + " " + Symbol() + " SELL order modification attempted.\rResult = " + ErrorDescription(GetLastError());
+                  AlertText = orderComment + " " + Symbol() + " SELL order modification attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5);
                   f_SendAlerts(AlertText);                  
             }
          } 
@@ -129,8 +129,8 @@ if( f_OrdersTotal(magic_number_1) < contracts )   {
    //--------
          if(check==0)         {
               AlertText = "BUY order opened : " + Symbol() + ", " + TFToStr(Period())+ " -\r"
-               + orderComment + " " + contracts + " order(s) opened \r";
-         }  else AlertText = "Error opening BUY order : " + ErrorDescription(check); 
+               + orderComment + " " + contracts + " order(s) opened. \rPrice = " + DoubleToStr(Ask, 5) + ", L = " + DoubleToStr(H, 5);
+         }  else AlertText = "Error opening BUY order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", L = " + DoubleToStr(H, 5);
          f_SendAlerts(AlertText); 
       }
 // check for short position (SELL) possibility
@@ -142,8 +142,8 @@ if( f_OrdersTotal(magic_number_1) < contracts )   {
    //--------
          if(check==0)         {
                AlertText = "SELL order opened : " + Symbol() + ", " + TFToStr(Period())+ " -\r"
-               + orderComment + " " + contracts + " order(s) opened \r";
-         }  else AlertText = "Error opening SELL order : " + ErrorDescription(check); 
+               + orderComment + " " + contracts + " order(s) opened. \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5);
+         }  else AlertText = "Error opening SELL order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5); 
          f_SendAlerts(AlertText);
       }
 } 

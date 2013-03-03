@@ -1,19 +1,19 @@
 //+------------------------------------------------------------------+
-//             Copyright © RRJ                                       |
-// v 1.0 - ... z MM, wysy³a alerty                                   |
+//             Copyright © 2012, 2013 chew-z                                       |
+// v 1.01 - ... z MM, wysy³a alerty                                   |
 // 1)                                                                |
 // 2)                                                                |
 // 3)                                                                |
 // 4)                                                                |
 //+------------------------------------------------------------------+
-#property copyright "Dynamic Breakout 1.0 © RRJ"
+#property copyright "Dynamic Breakout 1.01 © 2012, 2013 chew-z"
 #include <TradeContext.mq4>
 #include <TradeTools.mqh>
 #include <stdlib.mqh>
 int magic_number_1 = 10001235;
 int StopLevel;
 string AlertText ="";
-string orderComment = "Dynamic Breakout 1.00";
+string orderComment = "Dynamic Breakout 1.01";
 static int BarTime;
 //--------------------------
 int init()     {
@@ -65,7 +65,7 @@ if( isNewBar ) {
                      return(-1);   
                   OrderClose(OrderTicket(),OrderLots(),Bid,5,Violet); // close position
                   TradeIsNotBusy();
-                  f_SendAlerts(orderComment + " trade exit attempted.\rResult = " + ErrorDescription(GetLastError()));
+                  f_SendAlerts(orderComment + " trade exit attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5) );
          }
          if(OrderType() == OP_SELL && ( ShortExit  )  )   {
                   RefreshRates();
@@ -73,7 +73,7 @@ if( isNewBar ) {
                      return(-1);   
                   OrderClose(OrderTicket(),OrderLots(),Ask,5,Violet); // close position
                   TradeIsNotBusy();
-                  f_SendAlerts(orderComment + " trade exit attempted.\rResult = " + ErrorDescription(GetLastError()));
+                  f_SendAlerts(orderComment + " trade exit attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5) );
          }
       }
    }
@@ -95,7 +95,7 @@ for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
                   return(-1);   
                OrderModify(OrderTicket(),OrderOpenPrice(), StopLoss, TakeProfit, 0, Gold);
                TradeIsNotBusy();
-               AlertText = orderComment + " " + Symbol() + " BUY order modification attempted.\rResult = " + ErrorDescription(GetLastError());
+               AlertText = orderComment + " " + Symbol() + " BUY order modification attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5);
                f_SendAlerts(AlertText);
                }
          }
@@ -110,7 +110,7 @@ for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
                   return(-1);   
                OrderModify(OrderTicket(),OrderOpenPrice(), StopLoss, TakeProfit, 0, Gold);
                TradeIsNotBusy();
-               AlertText = orderComment + " " + Symbol() + " SELL order modification attempted.\rResult = " + ErrorDescription(GetLastError());
+               AlertText = orderComment + " " + Symbol() + " SELL order modification attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5);
                f_SendAlerts(AlertText);
             }
          } 
@@ -131,8 +131,8 @@ if( contracts > 0 )   {
 //--------
        if(check==0)
             AlertText = "BUY order opened : " + Symbol() + ", " + TFToStr(Period())+ " -\r"
-            + orderComment + " " + contracts + " order(s) opened.";
-       else AlertText = "Error opening BUY order : " + ErrorDescription(check); 
+            + orderComment + " " + contracts + " order(s) opened. \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5);
+       else AlertText = "Error opening BUY order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5); 
        f_SendAlerts(AlertText);
       }
 // check for short position (SELL) possibility
@@ -144,8 +144,8 @@ if( contracts > 0 )   {
 //--------
        if(check==0)
             AlertText = "SELL order opened : " + Symbol() + ", " + TFToStr(Period())+ " -\r"
-            + orderComment + " " + contracts + " order(s) opened.";
-       else AlertText = "Error opening SELL order : " + ErrorDescription(check); 
+            + orderComment + " " + contracts + " order(s) opened. \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5);
+       else AlertText = "Error opening SELL order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5);
        f_SendAlerts(AlertText); 
       }
  }
