@@ -1,10 +1,10 @@
 //+------------------------------------------------------------------+
 //             Copyright © 2012, 2013 chew-z                         |
 // v .01 - switch isTrending()                                       |
-// 1) Najlepiej na D1, czyli uproœciæ                                |
-// 2) Jedno wejœcie, gdy nowy sygna³ isTrending()                    |
-// 3) potrzebuje dobrego TP, exitu i SL                              |
-// 4)                                                                |
+// 1) Tylko Daily D1                                                 |
+// 2) Jedno wejœcie w cyklu, gdy nowy sygna³ isTrending() = 1        |
+// 3) SL jest OK ale czasem zamyka i omija ca³y cykl trendu          |
+// 4) Nie ma TP i exitu                                              |
 //+------------------------------------------------------------------+
 #property copyright "Switch © 2012, 2013 chew-z"
 #include <TradeContext.mq4>
@@ -20,7 +20,7 @@ int Today;
 //--------------------------
 int init()     {
    BarTime = 0;				// 
-   Comment("Switch 0.01 ");
+   Comment("Katastrofa, gdy nie ma trendu! - przyjemny system, gdy trend jest.");
    Today = DayOfWeek();
    GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1);
    StopLevel = (MarketInfo(Symbol(), MODE_STOPLEVEL) + MarketInfo(Symbol(), MODE_SPREAD));
@@ -51,6 +51,9 @@ if ( NewDay()) {
 isNewBar = NewBar();
 // DISCOVER SIGNALS
    if (isNewBar && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) < 1 )   {
+      lookBackDays = f_lookBackDays(); // 
+      H = iHigh(NULL, PERIOD_D1, iHighest(NULL,PERIOD_D1,MODE_HIGH,lookBackDays,1)); // kurwa magic ale chyba dzia³a
+      L = iLow (NULL, PERIOD_D1, iLowest (NULL,PERIOD_D1,MODE_LOW,lookBackDays,1));
       if ( isTrending_L1(0) && !isTrending_L1(1))  {
             LongBuy = true; 
             ShortExit = true; 
@@ -64,7 +67,7 @@ isNewBar = NewBar();
       if ( !isTrending_L()  )  { //lepiej daily close
             LongExit = true;
       }
-      if ( !isTrending_S() )  { //jw.
+      if ( !isTrending_S()  )  { //jw.
             ShortExit = true;
       }
 
@@ -97,7 +100,44 @@ if( isNewBar ) {
    }
 }
 // MODIFY ORDERS 
-
+if( isNewBar ) {
+for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
+      if(OrderSelect(cnt, SELECT_BY_POS, MODE_TRADES) && OrderType() <= OP_SELL                    // check for opened position 
+                                                      && OrderSymbol() == Symbol()                 // check for symbol
+                                                      && OrderMagicNumber()  == magic_number_1 ) {
+         if(OrderType()==OP_BUY && OrderMagicNumber()  == magic_number_1  && iBarShift(NULL, PERIOD_D1, OrderOpenTime(), false) > 1 ) {
+            StopLoss = NormalizeDouble(L, Digits);
+            TakeProfit = OrderTakeProfit();
+            RefreshRates();
+            if (Ask - StopLoss <  StopLevel * Point )
+                  StopLoss = Ask - StopLevel * Point;
+            if (StopLoss > OrderStopLoss()+ 5*Point || TakeProfit > OrderTakeProfit() + 5*Point) {
+               if(TradeIsBusy() < 0) // Trade Busy semaphore 
+                  return(-1);   
+               OrderModify(OrderTicket(),OrderOpenPrice(), StopLoss, TakeProfit, 0, Gold);
+               TradeIsNotBusy();
+               AlertText = orderComment + " " + Symbol() + " BUY order modification attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5);
+               f_SendAlerts(AlertText);
+               }
+         }
+         if(OrderType()==OP_SELL && OrderMagicNumber()  == magic_number_1  && iBarShift(NULL, PERIOD_D1, OrderOpenTime(), false) > 1 ) {
+            StopLoss = NormalizeDouble(H, Digits);
+            TakeProfit = 0.00;
+            RefreshRates();
+            if (StopLoss - Bid <  StopLevel * Point )
+                  StopLoss = Bid + StopLevel * Point;
+            if (StopLoss < OrderStopLoss() - 5*Point ||  TakeProfit < OrderTakeProfit() - 5*Point)  {
+               if(TradeIsBusy() < 0) // Trade Busy semaphore 
+                  return(-1);   
+               OrderModify(OrderTicket(),OrderOpenPrice(), StopLoss, TakeProfit, 0, Gold);
+               TradeIsNotBusy();
+               AlertText = orderComment + " " + Symbol() + " SELL order modification attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5);
+               f_SendAlerts(AlertText);
+            }
+         } 
+       }
+    }
+}
 // MONEY MANAGEMENT
          Lots =  maxLots;
          contracts = f_Money_Management() - f_OrdersTotal(magic_number_1);
@@ -105,8 +145,8 @@ if( isNewBar ) {
 if( contracts > 0 )   {
 // check for long position (BUY) possibility
       if(LongBuy == true )      { // pozycja z sygnalu
-          StopLoss = NormalizeDouble(Low[2], Digits);
-          TakeProfit = 99.9;
+          StopLoss = NormalizeDouble(L, Digits);
+          TakeProfit = OrderTakeProfit();
 //--------Transaction
        check = f_SendOrders(OP_BUY, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
 //--------
@@ -118,7 +158,7 @@ if( contracts > 0 )   {
       }
 // check for short position (SELL) possibility
       if(ShortBuy == true )      { // pozycja z sygnalu
-               StopLoss = NormalizeDouble(High[2], Digits);
+               StopLoss = NormalizeDouble(H, Digits);
                TakeProfit = 0.0;
 //--------Transaction
        check = f_SendOrders(OP_SELL, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
