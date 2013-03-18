@@ -1,9 +1,9 @@
 //+------------------------------------------------------------------+
 //             Copyright © 2012, 2013 chew-z                         |
 // v .01 - switch isTrending()                                       |
-// 1) Najlepiej na D1, czyli uproœciæ                                                               |
-// 2)                                                                |
-// 3)                                                                |
+// 1) Najlepiej na D1, czyli uproœciæ                                |
+// 2) Jedno wejœcie, gdy nowy sygna³ isTrending()                    |
+// 3) potrzebuje dobrego TP, exitu i SL                              |
 // 4)                                                                |
 //+------------------------------------------------------------------+
 #property copyright "Switch © 2012, 2013 chew-z"
@@ -20,9 +20,9 @@ int Today;
 //--------------------------
 int init()     {
    BarTime = 0;				// 
-   Comment("Comment ");
+   Comment("Switch 0.01 ");
    Today = DayOfWeek();
-   GlobalVariableSet(DoubleToStr(magic_number_1, 0), 0);
+   GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1);
    StopLevel = (MarketInfo(Symbol(), MODE_STOPLEVEL) + MarketInfo(Symbol(), MODE_SPREAD));
    if (Digits == 5 || Digits == 3){    // Adjust for five (5) digit brokers.
       pips2dbl    = Point*10; pips2points = 10;   Digits.pips = 1;
@@ -31,7 +31,7 @@ int init()     {
 
 int deinit()                                    // Special funct. deinit()
    {
-   GlobalVariableDel(DoubleToStr(magic_number_1, 0));
+   GlobalVariableDel(StringConcatenate(Symbol(), magic_number_1));
    return;
    }
 //-------------------------
@@ -43,31 +43,28 @@ bool ShortExit = false, LongExit = false;
 int cnt, ticket, check;
 int contracts = 0;
 double Lots;
-double L, H, MA, exitLevel, H2, L2;
+double L, H;
 
 if ( NewDay()) {
-   GlobalVariableSet(DoubleToStr(magic_number_1, 0), 0);
+   GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0);
 }
 isNewBar = NewBar();
 // DISCOVER SIGNALS
-   if (isNewBar && GlobalVariableGet(DoubleToStr(magic_number_1, 0)) < 1 )   {
-      lookBackDays = f_lookBackDays(); // 
-      H = iHigh(NULL, PERIOD_D1, iHighest(NULL,PERIOD_D1,MODE_HIGH,lookBackDays,1)); // kurwa magic ale chyba dzia³a
-      L = iLow (NULL, PERIOD_D1, iLowest (NULL,PERIOD_D1,MODE_LOW,lookBackDays,1));
-      if ( isTrending_L() )  {
+   if (isNewBar && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) < 1 )   {
+      if ( isTrending_L1(0) && !isTrending_L1(1))  {
             LongBuy = true; 
             ShortExit = true; 
-            GlobalVariableSet(DoubleToStr(magic_number_1, 0), 1);
+            GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1);
       }
-      if ( isTrending_S() )  {
+      if ( isTrending_S1(0) && !isTrending_S1(1))  {
             ShortBuy = true; 
             LongExit = true;
-            GlobalVariableSet(DoubleToStr(magic_number_1, 0), 1);
+            GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1);
       }
-      if ( !isTrending_L() || Close[1] < L )  { //lepiej daily close
+      if ( !isTrending_L()  )  { //lepiej daily close
             LongExit = true;
       }
-      if ( !isTrending_S() || Close[1] > H)  { //jw.
+      if ( !isTrending_S() )  { //jw.
             ShortExit = true;
       }
 
@@ -108,8 +105,8 @@ if( isNewBar ) {
 if( contracts > 0 )   {
 // check for long position (BUY) possibility
       if(LongBuy == true )      { // pozycja z sygnalu
-          StopLoss = NormalizeDouble(Ask - 200 * pips2dbl, Digits);
-          TakeProfit = NormalizeDouble(Ask + 400 * pips2dbl, Digits);
+          StopLoss = NormalizeDouble(Low[2], Digits);
+          TakeProfit = 99.9;
 //--------Transaction
        check = f_SendOrders(OP_BUY, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
 //--------
@@ -121,8 +118,8 @@ if( contracts > 0 )   {
       }
 // check for short position (SELL) possibility
       if(ShortBuy == true )      { // pozycja z sygnalu
-               StopLoss = NormalizeDouble(Bid + 200 * pips2dbl, Digits);
-               TakeProfit = NormalizeDouble(Bid - 400 * pips2dbl, Digits);
+               StopLoss = NormalizeDouble(High[2], Digits);
+               TakeProfit = 0.0;
 //--------Transaction
        check = f_SendOrders(OP_SELL, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
 //--------
