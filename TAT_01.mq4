@@ -6,7 +6,7 @@
 // 3)                                                                |
 // 4)                                                                |
 //+------------------------------------------------------------------+
-#property copyright "Dynamic pre-Breakout 1.01 © 2012, 2013 chew-z"
+#property copyright "Trend Anty-Trend .01 © 2012, 2013 chew-z"
 #include <TradeContext.mq4>
 #include <TradeTools.mqh>
 #include <stdlib.mqh>
@@ -21,7 +21,6 @@ double L, H;
 //--------------------------
 int init()     {
    BarTime = 0;				// 
-   Comment("Comment ");
    Today = DayOfWeek();
    StopLevel = (MarketInfo(Symbol(), MODE_STOPLEVEL) + MarketInfo(Symbol(), MODE_SPREAD));
    if (Digits == 5 || Digits == 3){    // Adjust for five (5) digit brokers.
@@ -31,6 +30,7 @@ int init()     {
 
 int deinit()                                    // Special funct. deinit()
    {
+   GlobalVariableDel(StringConcatenate(Symbol(), magic_number_1));
    return;
    }
 //-------------------------
@@ -155,14 +155,14 @@ bool NewDay() {
 } 
 
 bool isBreakout_H() {
-   if ( Ask > H && ((H - Open[0]  > 20 * pips2dbl) ) )
+   if ( Ask > H && ((H - Open[1]  > 20 * pips2dbl) ) )
       return(true);
    return(false);
 
 }
 
 bool isBreakout_L() {
-   if ( Bid < L && ((Open[0] - L  > 20 * pips2dbl)  ) )
+   if ( Bid < L && ((Open[1] - L  > 20 * pips2dbl)  ) )
       return(true);
    return(false);
 
