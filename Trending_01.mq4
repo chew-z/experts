@@ -13,7 +13,7 @@
 int magic_number_1 = 10009935;
 int StopLevel;
 string AlertText ="";
-string orderComment = "Switch 0.01";
+string orderComment = "Trending 0.01";
 static int BarTime;
 int Today;
 
@@ -36,7 +36,7 @@ int deinit()                                    // Special funct. deinit()
    }
 //-------------------------
 int start()    { 
-bool isNewBar;  
+bool isNewBar, isNewDay;  
 double StopLoss, TakeProfit;
 bool  ShortBuy = false, LongBuy = false;
 bool ShortExit = false, LongExit = false;
@@ -45,7 +45,8 @@ int contracts = 0;
 double Lots;
 double L, H;
 
-if ( NewDay()) {
+isNewDay = NewDay();
+if ( isNewDay ) {
    GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0);
 }
 isNewBar = NewBar();
@@ -64,10 +65,10 @@ isNewBar = NewBar();
             LongExit = true;
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1);
       }
-      if ( !isTrending_L()  )  { //lepiej daily close
+      if ( !isTrending_L1(0)  )  { //lepiej daily close
             LongExit = true;
       }
-      if ( !isTrending_S()  )  { //jw.
+      if ( !isTrending_S1(0)  )  { //jw.
             ShortExit = true;
       }
 
@@ -100,7 +101,7 @@ if( isNewBar ) {
    }
 }
 // MODIFY ORDERS 
-if( isNewBar ) {
+if( isNewDay ) {
 for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
       if(OrderSelect(cnt, SELECT_BY_POS, MODE_TRADES) && OrderType() <= OP_SELL                    // check for opened position 
                                                       && OrderSymbol() == Symbol()                 // check for symbol
@@ -122,7 +123,7 @@ for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
          }
          if(OrderType()==OP_SELL && OrderMagicNumber()  == magic_number_1  && iBarShift(NULL, PERIOD_D1, OrderOpenTime(), false) > 1 ) {
             StopLoss = NormalizeDouble(H, Digits);
-            TakeProfit = 0.00;
+            TakeProfit = OrderTakeProfit(); // 0.0;
             RefreshRates();
             if (StopLoss - Bid <  StopLevel * Point )
                   StopLoss = Bid + StopLevel * Point;
@@ -159,7 +160,7 @@ if( contracts > 0 )   {
 // check for short position (SELL) possibility
       if(ShortBuy == true )      { // pozycja z sygnalu
                StopLoss = NormalizeDouble(H, Digits);
-               TakeProfit = 0.0;
+               TakeProfit = OrderTakeProfit(); // 0.0;
 //--------Transaction
        check = f_SendOrders(OP_SELL, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
 //--------
