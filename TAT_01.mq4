@@ -146,28 +146,6 @@ bool NewBar()  {
    return(false);
 }
 
-bool NewDay() {
-   if(Today!=DayOfWeek()) {
-      Today=DayOfWeek();
-      return(true);
-   }
-   return(false);
-} 
-
-bool isBreakout_H() {
-   if ( Ask > H && ((H - Open[1]  > 20 * pips2dbl) ) )
-      return(true);
-   return(false);
-
-}
-
-bool isBreakout_L() {
-   if ( Bid < L && ((Open[1] - L  > 20 * pips2dbl)  ) )
-      return(true);
-   return(false);
-
-}
-
 double sl_H() {
    if (Open[0] < H)
       return(Open[0]);
