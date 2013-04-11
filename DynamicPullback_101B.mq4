@@ -10,8 +10,7 @@
 #include <TradeContext.mq4>
 #include <TradeTools.mqh>
 #include <stdlib.mqh>
-extern int SL = 30;
-extern int TP = 100;
+
 int magic_number_1 = 10001276;
 int StopLevel;
 int Today;

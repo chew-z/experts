@@ -10,8 +10,7 @@
 #include <TradeContext.mq4>
 #include <TradeTools.mqh>
 #include <stdlib.mqh>
-extern int SL = 20;
-extern int TP = 60;
+
 int magic_number_1 = 13102235;
 int StopLevel;
 string AlertText ="";

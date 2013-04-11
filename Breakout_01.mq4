@@ -1,21 +1,20 @@
 //+------------------------------------------------------------------+
 //             Copyright © 2012, 2013 chew-z                         |
-// v .01 - Trend - anty-Trend stub                                   |
-// 1)                                                                |
+// v .01 - Breakout stub                                             |
+// 1) SL, TP w pispach, teoretycznie zakres pochodzi z data mining   |
 // 2)                                                                |
 // 3)                                                                |
 // 4)                                                                |
 //+------------------------------------------------------------------+
-#property copyright "Fade .01 © 2012, 2013 chew-z"
+#property copyright "Breakout .01 © 2012, 2013 chew-z"
 #include <TradeContext.mq4>
 #include <TradeTools.mqh>
 #include <stdlib.mqh>
-extern int SL = 20;
-extern int TP = 60;
+
 int magic_number_1 = 13102235;
 int StopLevel;
 string AlertText ="";
-string orderComment = "Fade .01";
+string orderComment = "Breakout .01";
 static int BarTime;
 int Today;
 double L, H;
@@ -148,25 +147,6 @@ bool NewBar()  {
    return(false);
 }
 
-bool NewDay() {
-   if(Today!=DayOfWeek()) {
-      Today=DayOfWeek();
-      return(true);
-   }
-   return(false);
-} 
+ 
 
-bool isBreakout_H() {
-   if ( Ask > H && ((H - Open[1]  > 20 * pips2dbl) ) )
-      return(true);
-   return(false);
-
-}
-
-bool isBreakout_L() {
-   if ( Bid < L && ((Open[1] - L  > 20 * pips2dbl)  ) )
-      return(true);
-   return(false);
-
-}
 
