@@ -145,12 +145,5 @@ bool NewBar()  {
    return(false);
 }
 
-bool NewDay() {
-   if(Today!=DayOfWeek()) {
-      Today=DayOfWeek();
-      return(true);
-   }
-   return(false);
-} 
 
 

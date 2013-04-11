@@ -60,7 +60,7 @@ isNewBar = NewBar();
             LongBuy = true;  
             GlobalVariableSet(DoubleToStr(magic_number_1, 0), 1);
       }
-      if (Close[1] > L && iClose (NULL, 0, iHigest (NULL,0,MODE_CLOSE,12,1)) < L2 && isTrending_S() )  {
+      if (Close[1] > L && iClose (NULL, 0, iHighest (NULL,0,MODE_CLOSE,12,1)) < L2 && isTrending_S() )  {
             ShortBuy = true; 
             GlobalVariableSet(DoubleToStr(magic_number_1, 0), 1);
       }
