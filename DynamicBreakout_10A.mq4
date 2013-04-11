@@ -35,7 +35,7 @@ int deinit()                                    // Special funct. deinit()
    }
 //-------------------------
 int start()    { 
-bool isNewBar;  
+bool isNewBar, isNewDay;  
 double StopLoss, TakeProfit;
 bool  ShortBuy = false, LongBuy = false;
 bool ShortExit = false, LongExit = false;
@@ -43,11 +43,11 @@ int cnt, ticket, check;
 int contracts = 0;
 double Lots;
 double exitLevel, H2, L2;
-
-if ( NewDay()) {
+isNewBar = NewBar();
+isNewDay = NewDay();
+if ( isNewDay ) {
    GlobalVariableSet(DoubleToStr(magic_number_1, 0), 0);
 }
-isNewBar = NewBar();
 // DISCOVER SIGNALS
    if (isNewBar && GlobalVariableGet(DoubleToStr(magic_number_1, 0)) < 1 )   {
      lookBackDays = f_lookBackDays(); // 

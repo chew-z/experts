@@ -31,7 +31,7 @@ int deinit()   {
 }
 //-------------------------
 int start()    { 
-bool isNewBar;  
+bool isNewBar, isNewDay;  
 double StopLoss, TakeProfit;
 bool  ShortBuy = false, LongBuy = false;
 bool ShortExit = false, LongExit = false;
@@ -41,7 +41,8 @@ double Lots;
 double MA;
 
 isNewBar = NewBar();
-if ( NewDay()) {
+isNewDay = NewDay();
+if ( isNewDay ) {
      lookBackDays = f_lookBackDays(); // 
      GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0);
 }
@@ -89,7 +90,7 @@ if( isNewBar ) {
    }
 }
 // MODIFY ORDERS 
-if( isNewBar ) {
+if( isNewDay ) {
    for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
       if(OrderSelect(cnt, SELECT_BY_POS, MODE_TRADES) && OrderType() <= OP_SELL                    // check for opened position 
                                                       && OrderSymbol() == Symbol()                 // check for symbol

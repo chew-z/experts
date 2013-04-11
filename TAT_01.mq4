@@ -33,7 +33,7 @@ int deinit()                                    // Special funct. deinit()
    }
 //-------------------------
 int start()    { 
-bool isNewBar;  
+bool isNewBar, isNewDay;
 double StopLoss, TakeProfit;
 bool  ShortBuy = false, LongBuy = false;
 bool ShortExit = false, LongExit = false;
@@ -42,7 +42,8 @@ int contracts = 0;
 double Lots;
 
 isNewBar = NewBar();
-if ( NewDay()) {
+isNewDay = NewDay();
+if ( isNewDay ) {
      lookBackDays = f_lookBackDays(); // 
      H = iHigh(NULL, PERIOD_D1, iHighest(NULL,PERIOD_D1,MODE_HIGH,lookBackDays,1)); 
      L = iLow (NULL, PERIOD_D1, iLowest (NULL,PERIOD_D1,MODE_LOW,lookBackDays,1));

@@ -43,11 +43,11 @@ int cnt, ticket, check;
 int contracts = 0;
 double Lots;
 
+isNewBar = NewBar();
 isNewDay = NewDay();
 if ( isNewDay ) {
    GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0);
 }
-isNewBar = NewBar();
 // DISCOVER SIGNALS
    if (isNewBar && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) < 1 )   {
       lookBackDays = f_lookBackDays(); // 
