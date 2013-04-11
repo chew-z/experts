@@ -16,8 +16,8 @@ int StopLevel;
 string AlertText ="";
 string orderComment = "Breakout .01";
 static int BarTime;
-int Today;
-double L, H;
+// int Today;
+// double L, H;
 
 //--------------------------
 int init()  {

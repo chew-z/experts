@@ -34,7 +34,7 @@ bool ShortExit = false, LongExit = false;
 int cnt, ticket, check;
 int contracts = 0;
 double Lots;
-double L, H, MA;
+double MA;
 
 isNewBar = NewBar();
 // DISCOVER SIGNALS

@@ -15,7 +15,6 @@ int StopLevel;
 string AlertText ="";
 string orderComment = "Dynamic pre-Breakout 1.01A";
 static int BarTime;
-int Today;
 
 //--------------------------
 int init()     {
@@ -43,7 +42,7 @@ bool ShortExit = false, LongExit = false;
 int cnt, ticket, check;
 int contracts = 0;
 double Lots;
-double L, H, MA, exitLevel, H2, L2;
+double exitLevel, H2, L2;
 
 if ( NewDay()) {
    GlobalVariableSet(DoubleToStr(magic_number_1, 0), 0);

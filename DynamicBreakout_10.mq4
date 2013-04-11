@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
-//             Copyright © 2012, 2013 chew-z                                       |
-// v 1.01 - ... z MM, wysy³a alerty                                   |
+//             Copyright © 2012, 2013 chew-z                         |
+// v 1.01 - ... z MM, wysy³a alerty                                  |
 // 1)                                                                |
 // 2)                                                                |
 // 3)                                                                |
@@ -30,7 +30,7 @@ bool ShortExit = false, LongExit = false;
 int cnt, ticket, check;
 int contracts = 0;
 double Lots;
-double L, H, MA, exitLevel;
+double MA, exitLevel;
 
 isNewBar = NewBar();
 // DISCOVER SIGNALS

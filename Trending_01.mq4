@@ -15,7 +15,6 @@ int StopLevel;
 string AlertText ="";
 string orderComment = "Trending 0.01";
 static int BarTime;
-int Today;
 
 //--------------------------
 int init()     {
@@ -43,7 +42,6 @@ bool ShortExit = false, LongExit = false;
 int cnt, ticket, check;
 int contracts = 0;
 double Lots;
-double L, H;
 
 isNewDay = NewDay();
 if ( isNewDay ) {

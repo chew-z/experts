@@ -13,7 +13,6 @@
 
 int magic_number_1 = 10001276;
 int StopLevel;
-int Today;
 string AlertText ="";
 string orderComment = "Dynamic Pullback 1.01B";
 static int BarTime;
@@ -39,7 +38,7 @@ bool ShortExit = false, LongExit = false;
 int cnt, ticket, check;
 int contracts = 0;
 double Lots;
-double L, H, MA;
+double MA;
 
 isNewBar = NewBar();
 isNewDay = NewDay();

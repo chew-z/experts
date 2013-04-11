@@ -15,8 +15,6 @@ int StopLevel;
 string AlertText ="";
 string orderComment = "Trend Anty-Trend .01";
 static int BarTime;
-int Today;
-double L, H;
 
 //--------------------------
 int init()     {

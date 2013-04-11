@@ -16,8 +16,6 @@ int StopLevel;
 string AlertText ="";
 string orderComment = "Fade .01";
 static int BarTime;
-int Today;
-double L, H;
 
 //--------------------------
 int init()  {
