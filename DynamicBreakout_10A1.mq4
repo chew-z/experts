@@ -1,28 +1,28 @@
 //+------------------------------------------------------------------+
 //             Copyright © 2012, 2013 chew-z                         |
-// v .01 - switch isTrending()                                       |
-// 1) Tylko Daily D1                                                 |
-// 2) Jedno wejœcie w cyklu, gdy nowy sygna³ isTrending() = 1        |
-// 3) SL jest OK ale czasem zamyka i omija ca³y cykl trendu          |
-// 4) Nie ma TP i exitu                                              |
+// v 1.01A - wariant z pre-Breakout                                   |
+// 1)                                                                |
+// 2)                                                                |
+// 3)                                                                |
+// 4)                                                                |
 //+------------------------------------------------------------------+
-#property copyright "Switch © 2012, 2013 chew-z"
+#property copyright "Dynamic pre-Breakout 1.01 © 2012, 2013 chew-z"
 #include <TradeContext.mq4>
 #include <TradeTools.mqh>
 #include <stdlib.mqh>
-int magic_number_1 = 10009935;
+int magic_number_1 = 10002235;
 int StopLevel;
 string AlertText ="";
-string orderComment = "Trending 0.01";
+string orderComment = "Dynamic pre-Breakout 1.01A";
 static int BarTime;
 int Today;
 
 //--------------------------
 int init()     {
    BarTime = 0;				// 
-   Comment("Katastrofa, gdy nie ma trendu! - przyjemny system, gdy trend jest.");
+   Comment("Comment ");
    Today = DayOfWeek();
-   GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1);
+   GlobalVariableSet(DoubleToStr(magic_number_1, 0), 0);
    StopLevel = (MarketInfo(Symbol(), MODE_STOPLEVEL) + MarketInfo(Symbol(), MODE_SPREAD));
    if (Digits == 5 || Digits == 3){    // Adjust for five (5) digit brokers.
       pips2dbl    = Point*10; pips2points = 10;   Digits.pips = 1;
@@ -31,44 +31,44 @@ int init()     {
 
 int deinit()                                    // Special funct. deinit()
    {
-   GlobalVariableDel(StringConcatenate(Symbol(), magic_number_1));
+   GlobalVariableDel(DoubleToStr(magic_number_1, 0));
    return;
    }
 //-------------------------
 int start()    { 
-bool isNewBar, isNewDay;  
+bool isNewBar;  
 double StopLoss, TakeProfit;
 bool  ShortBuy = false, LongBuy = false;
 bool ShortExit = false, LongExit = false;
 int cnt, ticket, check;
 int contracts = 0;
 double Lots;
-double L, H;
+double L, H, MA, exitLevel, H2, L2;
 
-isNewDay = NewDay();
-if ( isNewDay ) {
-   GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0);
+if ( NewDay()) {
+   GlobalVariableSet(DoubleToStr(magic_number_1, 0), 0);
 }
 isNewBar = NewBar();
 // DISCOVER SIGNALS
-   if (isNewBar && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) < 1 )   {
-      lookBackDays = f_lookBackDays(); // 
-      H = iHigh(NULL, PERIOD_D1, iHighest(NULL,PERIOD_D1,MODE_HIGH,lookBackDays,1)); // kurwa magic ale chyba dzia³a
-      L = iLow (NULL, PERIOD_D1, iLowest (NULL,PERIOD_D1,MODE_LOW,lookBackDays,1));
-      if ( isTrending_L1(0) && !isTrending_L1(1))  {
-            LongBuy = true; 
-            ShortExit = true; 
-            GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1);
+   if (isNewBar && GlobalVariableGet(DoubleToStr(magic_number_1, 0)) < 1 )   {
+     lookBackDays = f_lookBackDays(); // 
+     H = iHigh(NULL, PERIOD_D1, iHighest(NULL,PERIOD_D1,MODE_HIGH,lookBackDays,1)); // kurwa magic ale chyba dzia³a
+     L = iLow (NULL, PERIOD_D1, iLowest (NULL,PERIOD_D1,MODE_LOW,lookBackDays,1));
+     H2 = iHigh(NULL, PERIOD_D1, iHighest(NULL,PERIOD_D1,MODE_HIGH,lookBackDays,2)); // kurwa magic ale chyba dzia³a
+     L2 = iLow (NULL, PERIOD_D1, iLowest (NULL,PERIOD_D1,MODE_LOW,lookBackDays,2));
+     
+      if (Close[1] < H && iClose (NULL, 0, iLowest (NULL,0,MODE_CLOSE,12,1)) > H2 && isTrending_L() )  {
+            LongBuy = true;  
+            GlobalVariableSet(DoubleToStr(magic_number_1, 0), 1);
       }
-      if ( isTrending_S1(0) && !isTrending_S1(1))  {
+      if (Close[1] > L && iClose (NULL, 0, iHigest (NULL,0,MODE_CLOSE,12,1)) < L2 && isTrending_S() )  {
             ShortBuy = true; 
-            LongExit = true;
-            GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1);
+            GlobalVariableSet(DoubleToStr(magic_number_1, 0), 1);
       }
-      if ( !isTrending_L1(0)  )  { //lepiej daily close
+      if ( Close[2] > H && Close[1] < H)  { //spierdalamy przy cofnieciu
             LongExit = true;
       }
-      if ( !isTrending_S1(0)  )  { //jw.
+      if ( Close[2] < L && Close[1] > L)  { //jw.
             ShortExit = true;
       }
 
@@ -101,44 +101,7 @@ if( isNewBar ) {
    }
 }
 // MODIFY ORDERS 
-if( isNewDay ) {
-for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
-      if(OrderSelect(cnt, SELECT_BY_POS, MODE_TRADES) && OrderType() <= OP_SELL                    // check for opened position 
-                                                      && OrderSymbol() == Symbol()                 // check for symbol
-                                                      && OrderMagicNumber()  == magic_number_1 ) {
-         if(OrderType()==OP_BUY && OrderMagicNumber()  == magic_number_1  && iBarShift(NULL, PERIOD_D1, OrderOpenTime(), false) > 1 ) {
-            StopLoss = NormalizeDouble(L, Digits);
-            TakeProfit = OrderTakeProfit();
-            RefreshRates();
-            if (Ask - StopLoss <  StopLevel * Point )
-                  StopLoss = Ask - StopLevel * Point;
-            if (StopLoss > OrderStopLoss()+ 5*Point || TakeProfit > OrderTakeProfit() + 5*Point) {
-               if(TradeIsBusy() < 0) // Trade Busy semaphore 
-                  return(-1);   
-               OrderModify(OrderTicket(),OrderOpenPrice(), StopLoss, TakeProfit, 0, Gold);
-               TradeIsNotBusy();
-               AlertText = orderComment + " " + Symbol() + " BUY order modification attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5);
-               f_SendAlerts(AlertText);
-               }
-         }
-         if(OrderType()==OP_SELL && OrderMagicNumber()  == magic_number_1  && iBarShift(NULL, PERIOD_D1, OrderOpenTime(), false) > 1 ) {
-            StopLoss = NormalizeDouble(H, Digits);
-            TakeProfit = OrderTakeProfit(); // 0.0;
-            RefreshRates();
-            if (StopLoss - Bid <  StopLevel * Point )
-                  StopLoss = Bid + StopLevel * Point;
-            if (StopLoss < OrderStopLoss() - 5*Point ||  TakeProfit < OrderTakeProfit() - 5*Point)  {
-               if(TradeIsBusy() < 0) // Trade Busy semaphore 
-                  return(-1);   
-               OrderModify(OrderTicket(),OrderOpenPrice(), StopLoss, TakeProfit, 0, Gold);
-               TradeIsNotBusy();
-               AlertText = orderComment + " " + Symbol() + " SELL order modification attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5);
-               f_SendAlerts(AlertText);
-            }
-         } 
-       }
-    }
-}
+
 // MONEY MANAGEMENT
          Lots =  maxLots;
          contracts = f_Money_Management() - f_OrdersTotal(magic_number_1);
@@ -146,8 +109,8 @@ for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
 if( contracts > 0 )   {
 // check for long position (BUY) possibility
       if(LongBuy == true )      { // pozycja z sygnalu
-          StopLoss = NormalizeDouble(L, Digits);
-          TakeProfit = OrderTakeProfit();
+          StopLoss = NormalizeDouble(H2, Digits);
+          TakeProfit = NormalizeDouble(H + 20 * pips2dbl, Digits);
 //--------Transaction
        check = f_SendOrders(OP_BUY, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
 //--------
@@ -159,8 +122,8 @@ if( contracts > 0 )   {
       }
 // check for short position (SELL) possibility
       if(ShortBuy == true )      { // pozycja z sygnalu
-               StopLoss = NormalizeDouble(H, Digits);
-               TakeProfit = OrderTakeProfit(); // 0.0;
+               StopLoss = NormalizeDouble(L2, Digits);
+               TakeProfit = NormalizeDouble(L - 20 * pips2dbl, Digits);
 //--------Transaction
        check = f_SendOrders(OP_SELL, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
 //--------

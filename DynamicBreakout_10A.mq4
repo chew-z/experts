@@ -117,7 +117,7 @@ if( contracts > 0 )   {
        if(check==0)
             AlertText = "BUY order opened : " + Symbol() + ", " + TFToStr(Period())+ " -\r"
             + orderComment + " " + contracts + " order(s) opened. \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5);
-       else AlertText = "Error opening BUY order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5); 
+       else { AlertText = "Error opening BUY order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5); }
        f_SendAlerts(AlertText);
       }
 // check for short position (SELL) possibility
@@ -130,7 +130,7 @@ if( contracts > 0 )   {
        if(check==0)
             AlertText = "SELL order opened : " + Symbol() + ", " + TFToStr(Period())+ " -\r"
             + orderComment + " " + contracts + " order(s) opened. \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5);
-       else AlertText = "Error opening SELL order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5);
+       else { AlertText = "Error opening SELL order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5); }
        f_SendAlerts(AlertText); 
       }
  }
