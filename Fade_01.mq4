@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //             Copyright © 2012, 2013 chew-z                         |
-// v .01 - Trend - anty-Trend tub                                    |
+// v .01 - Fade breakouts                                            |
 // 1)                                                                |
 // 2)                                                                |
 // 3)                                                                |
@@ -63,10 +63,10 @@ if ( isNewDay) {
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1); 
 
       }
-      if ( false )  { //spierdalamy przy cofnieciu
+      if ( Close[1] < H )  { //spierdalamy przy cofnieciu
             LongExit = true;
       }
-      if ( false )  { //jw.
+      if ( Close[1] > L )  { //jw.
             ShortExit = true;
       }
 
