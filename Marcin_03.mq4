@@ -14,14 +14,16 @@
 int magic_number_1 = 23456789;
 int StopLevel;
 string AlertText ="";
-string orderComment = "Marcin _02";
+string orderComment = "Marcin _03";
 static int BarTime;
+static int t; //
 int contracts = 0;
 double Lots;
 double StopLoss, TakeProfit;
 
 //--------------------------
 int init()  {
+   GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0); 
    BarTime = 0;				// 
    StopLevel = (MarketInfo(Symbol(), MODE_STOPLEVEL) + MarketInfo(Symbol(), MODE_SPREAD));
    if (Digits == 5 || Digits == 3) {    // Adjust for five (5) digit brokers.
@@ -39,26 +41,25 @@ bool isNewBar;
 bool  ShortBuy = false, LongBuy = false;
 int cnt, ticket, check;
 
-
 isNewBar = NewBar();
-if (isNewBar) {
-    GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0); 
-}
-
+if (isNewBar) { 
+    if(f_OrdersCount(magic_number_1) == 0) // Gdy nie ma pozycji (bo w domyśle, zostały zamknięte SL lub TP) wyzeruj flagę i czekaj na nowy sygnał
+      GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0); 
 // DISCOVER SIGNALS
    if ( GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) == 0 )   { // Only first signal on a bar
      
-      if ( isPullback_L1() )  {
+      if ( isTrend_H(T, K)  )  {
             LongBuy = true;
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1); 
       }
-      if ( isPullback_S1() )  {
+      if ( isTrend_L(T, K) )  {
             ShortBuy = true;
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1); 
       }
 
    }
 
+  }
 // EXIT MARKET 
 
 // MONEY MANAGEMENT
@@ -68,10 +69,10 @@ if (isNewBar) {
 if( contracts > 0 )   {
 // check for long position (BUY) possibility
       if(LongBuy == true )      { // pozycja z sygnalu
-          StopLoss = NormalizeDouble(Bid - SL * pips2dbl, Digits);
-          TakeProfit = NormalizeDouble(Ask + TP * pips2dbl, Digits);
+          StopLoss = NormalizeDouble(Close[1] - SL * pips2dbl, Digits);
+          TakeProfit = NormalizeDouble(Close[1] + TP * pips2dbl, Digits);
 //--------Transaction
-       check = f_SendOrders(OP_BUY, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
+       check = f_SendOrders_OnStop(OP_BUYSTOP, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
 //--------
        if(check==0)
             AlertText = "BUY order opened : " + Symbol() + ", " + TFToStr(Period())+ " -\r"
@@ -81,10 +82,10 @@ if( contracts > 0 )   {
       }
 // check for short position (SELL) possibility
       if(ShortBuy == true )      { // pozycja z sygnalu
-            StopLoss = NormalizeDouble(Ask + SL*pips2dbl, Digits);
-            TakeProfit = NormalizeDouble(Bid - TP*pips2dbl, Digits);
+            StopLoss = NormalizeDouble(Close[1] + SL*pips2dbl, Digits);
+            TakeProfit = NormalizeDouble(Close[1] - TP*pips2dbl, Digits);
 //--------Transaction
-       check = f_SendOrders(OP_SELL, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
+       check = f_SendOrders_OnStop(OP_SELLSTOP, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
 //--------
        if(check==0)
             AlertText = "SELL order opened : " + Symbol() + ", " + TFToStr(Period())+ " -\r"
