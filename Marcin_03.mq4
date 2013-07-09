@@ -6,7 +6,7 @@
 // 3)                                                                              |
 // 4)                                                                              |
 //+------------------------------------------------------------------+
-#property copyright "Marcin_02 © 2012, 2013 chew-z"
+#property copyright "Marcin_03 © 2012, 2013 chew-z"
 #include <TradeContext.mq4>
 #include <TradeTools_Marcin.mqh>
 #include <stdlib.mqh>
@@ -49,11 +49,11 @@ if (isNewBar) {
    if ( GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) == 0 )   { // Only first signal on a bar
      
       if ( isTrend_H(T, K)  )  {
-            LongBuy = true;
+            if ( With_trend ) LongBuy = true; else ShortBuy = true;
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1); 
       }
       if ( isTrend_L(T, K) )  {
-            ShortBuy = true;
+            if (With_trend) ShortBuy = true; else LongBuy = true;
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1); 
       }
 
@@ -69,7 +69,7 @@ if (isNewBar) {
 if( contracts > 0 )   {
 // check for long position (BUY) possibility
       if(LongBuy == true )      { // pozycja z sygnalu
-          StopLoss = NormalizeDouble(Close[1] - SL * pips2dbl, Digits);
+          StopLoss = NormalizeDouble(Close[1] + (Pending - SL) * pips2dbl, Digits);
           TakeProfit = NormalizeDouble(Close[1] + TP * pips2dbl, Digits);
 //--------Transaction
        check = f_SendOrders_OnStop(OP_BUYSTOP, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
@@ -82,8 +82,8 @@ if( contracts > 0 )   {
       }
 // check for short position (SELL) possibility
       if(ShortBuy == true )      { // pozycja z sygnalu
-            StopLoss = NormalizeDouble(Close[1] + SL*pips2dbl, Digits);
-            TakeProfit = NormalizeDouble(Close[1] - TP*pips2dbl, Digits);
+            StopLoss = NormalizeDouble(Close[1] + (SL - Pending) *pips2dbl, Digits);
+            TakeProfit = NormalizeDouble(Close[1] - TP*pips2dbl, Digits);          
 //--------Transaction
        check = f_SendOrders_OnStop(OP_SELLSTOP, contracts, Lots, StopLoss, TakeProfit, magic_number_1, orderComment);                       
 //--------
