@@ -1,19 +1,19 @@
 //+------------------------------------------------------------------+
 //             Copyright © 2012, 2013m 2014 chew-z                   |
-// v 1.02B - fade trendlines                                         |
+// v 1.0 - fade trendlines                                           |
 // 1) exit @ N or the other trendline?                               |
 // 2) N seems safer, lower drawdown but misses                       |
-// 3) This version is linked to trendline_2b indicator               |                                                                 |
+// 3) This version is linked to trendline_2a indicator               |                                                                        |
 //+------------------------------------------------------------------+
 #property copyright "Tin-tin Pullback © 2012, 2013, 2014 chew-z"
 #include <TradeContext.mq4>
 #include <TradeTools.mqh>
 #include <stdlib.mqh>
 extern int F = 25;
-int magic_number_1 = 10701267;
+int magic_number_1 = 10701269;
 int StopLevel;
 string AlertText ="";
-string orderComment = "Tin-tin Fade 1.02B";
+string orderComment = "Tin-tin Fade 1.02A";
 static int BarTime;
 //--------------------------
 int init()     {
@@ -47,13 +47,12 @@ if ( isNewDay ) {
 }
 // DISCOVER SIGNALS
    if (isNewBar )   {
-     half = MathRound((rangeX - blindRange) /2);
-     int max1 = iHighest(NULL, 0, MODE_HIGH, rangeX, half+1); //roughly 24 H1 bars per day
-     int max2 = iHighest(NULL, 0, MODE_HIGH, half, blindRange);
-     if (max1-max2 < blindRange) max2 = iHighest(NULL, 0, MODE_HIGH, half-blindRange, blindRange);
-     int min1 = iLowest(NULL, 0, MODE_LOW, rangeX, half+1);
-     int min2 = iLowest(NULL, 0, MODE_LOW, half, blindRange);
-     if (min1-min2 < blindRange) min2 = iLowest(NULL, 0, MODE_LOW, half-blindRange, blindRange);
+     int max1 = iHighest(NULL, 0, MODE_HIGH, rangeX, 1); //roughly 24 H1 bars per day
+         half = MathRound(max1/2) + 1;                                 // starts looking half-way from previous peak [not only lower peaks]
+     int max2 = iHighest(NULL, 0, MODE_HIGH, half, 1);
+     int min1 = iLowest(NULL, 0, MODE_LOW, rangeX, 1);
+         half = MathRound(min1/2) + 1;
+     int min2 = iLowest(NULL, 0, MODE_LOW, half, 1);
      double deltaYh = (High[max1]-High[max2]) / (max1 - max2);    // delta Y High
      double deltaYl = (Low[min2]-Low[min1]) / (min1 - min2);          // delta Y Low 
       H  = High[max1] - (max1) * deltaYh;
