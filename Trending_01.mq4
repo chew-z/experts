@@ -18,14 +18,14 @@ static int BarTime;
 
 //--------------------------
 int init()     {
+   AlertEmailSubject = Symbol() + " Trending";
    BarTime = 0;				// 
-   Comment("Katastrofa, gdy nie ma trendu! - przyjemny system, gdy trend jest.");
    Today = DayOfWeek();
    GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1);
    StopLevel = (MarketInfo(Symbol(), MODE_STOPLEVEL) + MarketInfo(Symbol(), MODE_SPREAD));
    if (Digits == 5 || Digits == 3){    // Adjust for five (5) digit brokers.
-      pips2dbl    = Point*10; pips2points = 10;   Digits.pips = 1;
-   } else {    pips2dbl    = Point;    pips2points =  1;   Digits.pips = 0; } 
+      pips2dbl    = Point*10; pips2points = 10;   Digits_pips = 1;
+   } else {    pips2dbl    = Point;    pips2points =  1;   Digits_pips = 0; } 
 }
 
 int deinit()                                    // Special funct. deinit()
@@ -105,8 +105,8 @@ for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
                                                       && OrderSymbol() == Symbol()                 // check for symbol
                                                       && OrderMagicNumber()  == magic_number_1 ) {
          if(OrderType()==OP_BUY && OrderMagicNumber()  == magic_number_1  && iBarShift(NULL, PERIOD_D1, OrderOpenTime(), false) > 1 ) {
-            StopLoss = NormalizeDouble(L, Digits);
-            TakeProfit = OrderTakeProfit();
+            StopLoss = NormalizeDouble(L, Digits); // dlatego czasami error ?
+          //  TakeProfit = OrderTakeProfit();
             RefreshRates();
             if (Ask - StopLoss <  StopLevel * Point )
                   StopLoss = Ask - StopLevel * Point;
@@ -120,8 +120,8 @@ for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
                }
          }
          if(OrderType()==OP_SELL && OrderMagicNumber()  == magic_number_1  && iBarShift(NULL, PERIOD_D1, OrderOpenTime(), false) > 1 ) {
-            StopLoss = NormalizeDouble(H, Digits);
-            TakeProfit = OrderTakeProfit(); // 0.0;
+            StopLoss = NormalizeDouble(H, Digits); // dlatego czasami error ?
+          //  TakeProfit = OrderTakeProfit(); // 0.0;
             RefreshRates();
             if (StopLoss - Bid <  StopLevel * Point )
                   StopLoss = Bid + StopLevel * Point;

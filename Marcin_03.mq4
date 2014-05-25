@@ -27,8 +27,8 @@ int init()  {
    BarTime = 0;				// 
    StopLevel = (MarketInfo(Symbol(), MODE_STOPLEVEL) + MarketInfo(Symbol(), MODE_SPREAD));
    if (Digits == 5 || Digits == 3) {    // Adjust for five (5) digit brokers.
-      pips2dbl    = Point*10; pips2points = 10;   Digits.pips = 1;
-   } else {    pips2dbl    = Point;    pips2points =  1;   Digits.pips = 0; } 
+      pips2dbl    = Point*10; pips2points = 10;   Digits_pips = 1;
+   } else {    pips2dbl    = Point;    pips2points =  1;   Digits_pips = 0; } 
 }
 
 int deinit()  {

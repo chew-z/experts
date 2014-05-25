@@ -1,22 +1,24 @@
 //+------------------------------------------------------------------+
-//             Copyright © 2012, 2013 chew-z                         |
-// v 1.0B1 - zarządzanie według ideii z materiału o Pin Bars         |
-// 1) zamyka część pozycji                                           |
-// 2) przesuwa SL do breakeven                                       |
-// 3) wysyła alerty, gdy pozycja zarobiona (do zakodowania)          |
-// 4)                                                                |
+//             Copyright © 2012, 2013m 2014 chew-z                   |
+// v 1.02B - fade trendlines                                         |
+// 1) exit @ N or the other trendline?                               |
+// 2) N seems safer, lower drawdown but misses                       |
+// 3) This version is linked to trendline_2b indicator               |                                                                 |
 //+------------------------------------------------------------------+
-#property copyright "Pin-pin Pullback © 2012, 2013 chew-z"
+#property copyright "Tin-tin Pullback © 2012, 2013, 2014 chew-z"
 #include <TradeContext.mq4>
 #include <TradeTools.mqh>
 #include <stdlib.mqh>
-int magic_number_1 = 10701236;
+extern int F = 25;
+int magic_number_1 = 10701267;
 int StopLevel;
 string AlertText ="";
-string orderComment = "Pin-pin Pullback 1.0B1";
+string orderComment = "Tin-tin Fade 1.02";
 static int BarTime;
 //--------------------------
 int init()     {
+   AlertEmailSubject = Symbol() + " Tin-tin";
+   GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0);
    BarTime = 0;
    Today = DayOfWeek();
    StopLevel = (MarketInfo(Symbol(), MODE_STOPLEVEL) + MarketInfo(Symbol(), MODE_SPREAD));
@@ -25,7 +27,6 @@ int init()     {
    } else {    pips2dbl    = Point;    pips2points =  1;   Digits_pips = 0; }
 }
 int deinit()   {
-   GlobalVariableDel(StringConcatenate(Symbol(), magic_number_1));
    return;
 }
 //-------------------------
@@ -34,33 +35,41 @@ bool isNewBar, isNewDay;
 double StopLoss, TakeProfit;
 bool  ShortBuy = false, LongBuy = false;
 bool ShortExit = false, LongExit = false;
-int cnt, ticket, check;
+int cnt, ticket, check, half;
 int contracts = 0;
 double Lots;
-double MA;
+double N;
 
 isNewBar = NewBar();
 isNewDay = NewDay();
 if ( isNewDay ) {
-     lookBackDays = f_lookBackDays(); // 
      GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0); // zerowanie o północy
 }
 // DISCOVER SIGNALS
-   if (isNewBar && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) < 1)   {
-     lookBackDays = f_lookBackDays(); // 
-     H = iHigh(NULL, PERIOD_D1, iHighest(NULL,PERIOD_D1,MODE_HIGH,lookBackDays,1)); 
-     L = iLow (NULL, PERIOD_D1, iLowest (NULL,PERIOD_D1,MODE_LOW,lookBackDays,1));
-    MA = iMA(NULL, PERIOD_D1, EMA, 0, MODE_EMA, PRICE_CLOSE, 1);
-      if (isRecentHigh_L() && isPullback_L1()   )  {
-            LongBuy = true;  
+   if (isNewBar )   {
+     half = MathRound((rangeX - blindRange) /2);
+     int max1 = iHighest(NULL, 0, MODE_HIGH, rangeX, half+1); //roughly 24 H1 bars per day
+     int max2 = iHighest(NULL, 0, MODE_HIGH, half, blindRange);
+     if (max1-max2 < blindRange) max2 = iHighest(NULL, 0, MODE_HIGH, half-blindRange, blindRange);
+     int min1 = iLowest(NULL, 0, MODE_LOW, rangeX, half+1);
+     int min2 = iLowest(NULL, 0, MODE_LOW, half, blindRange);
+     if (min1-min2 < blindRange) min2 = iLowest(NULL, 0, MODE_LOW, half-blindRange, blindRange);
+     double deltaYh = (High[max1]-High[max2]) / (max1 - max2);    // delta Y High
+     double deltaYl = (Low[min2]-Low[min1]) / (min1 - min2);          // delta Y Low 
+      H  = High[max1] - (max1) * deltaYh;
+      L  = Low[min1] + (min1) * deltaYl;
+      N = NormalizeDouble((H + L) / 2, 5);
+      if ( H > L && (Close[1] - H) > F * pips2dbl   )  {
+            ShortBuy = true;
+            LongExit = true;  
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 2); // Zajmuje dwie pozycje(loty)
       }
-      if (isRecentLow_S() && isPullback_S1()   )  {
-            ShortBuy = true; 
+      if ( H > L && (L - Close[1]) > F * pips2dbl   )  {
+            LongBuy = true;
+            ShortExit = true; 
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 2); 
       }
-   }
-
+}
 // EXIT MARKET 
 if( isNewBar ) {  
    for(cnt=OrdersTotal()-1;cnt>=0;cnt--) {
@@ -68,8 +77,8 @@ if( isNewBar ) {
                                                       && OrderSymbol() == Symbol()                 // check for symbol
                                                       && (OrderMagicNumber()  == magic_number_1) ) // my magic number    
       {
-         // Jeśli pozycja zarobiona to przymknij 1 lot
-         if(OrderType() == OP_BUY && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) > 1  && (Ask - OrderOpenPrice()) > TP * pips2dbl  )   {
+         // JeÅ›li do koÅ„ca dnia pozycja zarobiona to przymknij 1 lot
+         if(OrderType() == OP_BUY && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) > 1  && Close[1] > N  )   {
                   RefreshRates();
                   if(TradeIsBusy() < 0) // Trade Busy semaphore 
                      return(-1);   
@@ -78,7 +87,7 @@ if( isNewBar ) {
                   GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 1); // 1/2 position closed
                   f_SendAlerts(orderComment + " trade exit attempted.\rResult = " + ErrorDescription(GetLastError()) + ". \rPrice = " + DoubleToStr(Ask, 5));
          }
-         if(OrderType() == OP_SELL && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) > 1  && (OrderOpenPrice() - Bid) > TP * pips2dbl )   {
+         if(OrderType() == OP_SELL && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) > 1  && Close[1] < N )   {
                   RefreshRates();
                   if(TradeIsBusy() < 0) // Trade Busy semaphore 
                      return(-1);   
@@ -97,9 +106,9 @@ if( isNewDay ) {
       if(OrderSelect(cnt, SELECT_BY_POS, MODE_TRADES) && OrderType() <= OP_SELL                    // check for opened position 
                                                       && OrderSymbol() == Symbol()                 // check for symbol
                                                       && OrderMagicNumber()  == magic_number_1 ) {
-         // Jeśli przymknąłeś połowę albo się da to przesuń SL do breakeven
-         if(OrderType()== OP_BUY && OrderMagicNumber()  == magic_number_1  && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) < 2 ) {
-            StopLoss = OrderOpenPrice();
+         // JeÅ›li przymknÄ…Å‚eÅ› poÅ‚owÄ™ albo siÄ™ da to przesuÅ„ SL do breakeven
+         if(OrderType()== OP_BUY && OrderMagicNumber()  == magic_number_1  ) {
+            StopLoss = NormalizeDouble(L , Digits);
             TakeProfit = NormalizeDouble(H , Digits);
             RefreshRates();
             if ( TakeProfit != OrderTakeProfit() || StopLoss > OrderStopLoss() + 5*pips2dbl ) { // TakeProfit > OrderTakeProfit() + 5*Point
@@ -111,8 +120,8 @@ if( isNewDay ) {
                   f_SendAlerts(AlertText);                  
             }
          }
-         if(OrderType()==OP_SELL && OrderMagicNumber()  == magic_number_1  && GlobalVariableGet(StringConcatenate(Symbol(), magic_number_1)) < 2 ) {
-            StopLoss = OrderOpenPrice();
+         if(OrderType()==OP_SELL && OrderMagicNumber()  == magic_number_1   ) {
+            StopLoss = NormalizeDouble(H , Digits);
             TakeProfit = NormalizeDouble(L , Digits);
             RefreshRates();
             if ( TakeProfit != OrderTakeProfit() || StopLoss < OrderStopLoss() + 5*pips2dbl )  { // TakeProfit < OrderTakeProfit() - 5*Point
@@ -142,7 +151,7 @@ if( f_OrdersTotal(magic_number_1) < contracts )   {
          if(check==0)         {
               AlertText = "BUY order opened : " + Symbol() + ", " + TFToStr(Period())+ " -\r"
                + orderComment + " " + contracts + " order(s) opened. \rPrice = " + DoubleToStr(Ask, 5) + ", L = " + DoubleToStr(L, 5);
-         }  else { AlertText = "Error opening BUY order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", L = " + DoubleToStr(L, 5); }
+         }  else { AlertText = "Error opening BUY order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Ask, 5) + ", H = " + DoubleToStr(H, 5); }
          f_SendAlerts(AlertText); 
       }
 // check for short position (SELL) possibility
@@ -155,7 +164,7 @@ if( f_OrdersTotal(magic_number_1) < contracts )   {
          if(check==0)         {
                AlertText = "SELL order opened : " + Symbol() + ", " + TFToStr(Period())+ " -\r"
                + orderComment + " " + contracts + " order(s) opened. \rPrice = " + DoubleToStr(Bid, 5) + ", H = " + DoubleToStr(H, 5);
-         }  else { AlertText = "Error opening SELL order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", H = " + DoubleToStr(H, 5); }
+         }  else { AlertText = "Error opening SELL order : " + ErrorDescription(check) + ". \rPrice = " + DoubleToStr(Bid, 5) + ", L = " + DoubleToStr(L, 5); }
          f_SendAlerts(AlertText);
       }
 } 

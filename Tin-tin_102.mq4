@@ -1,9 +1,9 @@
 //+------------------------------------------------------------------+
-//             Copyright © 2012, 2013m 2014 chew-z       |
-// v 1.0 - fade trendlines                                               |
-// 1) exit @ N or the other trendline?                           |
-// 2) N seems safer, lower drawdown but misses         |
-// 3)                                                                               |
+//             Copyright © 2012, 2013m 2014 chew-z                   |
+// v 1.0 - fade trendlines                                           |
+// 1) exit @ N or the other trendline?                               |
+// 2) N seems safer, lower drawdown but misses                       |
+// 3) This version is linked to trendline_2a indicator               |                                                                        |
 //+------------------------------------------------------------------+
 #property copyright "Tin-tin Pullback © 2012, 2013, 2014 chew-z"
 #include <TradeContext.mq4>
@@ -23,8 +23,8 @@ int init()     {
    Today = DayOfWeek();
    StopLevel = (MarketInfo(Symbol(), MODE_STOPLEVEL) + MarketInfo(Symbol(), MODE_SPREAD));
    if (Digits == 5 || Digits == 3){    // Adjust for five (5) digit brokers.
-      pips2dbl    = Point*10; pips2points = 10;   Digits.pips = 1;
-   } else {    pips2dbl    = Point;    pips2points =  1;   Digits.pips = 0; }
+      pips2dbl    = Point*10; pips2points = 10;   Digits_pips = 1;
+   } else {    pips2dbl    = Point;    pips2points =  1;   Digits_pips = 0; }
 }
 int deinit()   {
    return;
@@ -43,12 +43,10 @@ double N;
 isNewBar = NewBar();
 isNewDay = NewDay();
 if ( isNewDay ) {
-     lookBackDays = f_lookBackDays(); // 
      GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 0); // zerowanie o północy
 }
 // DISCOVER SIGNALS
    if (isNewBar )   {
-     lookBackDays = f_lookBackDays(); // 
      int max1 = iHighest(NULL, 0, MODE_HIGH, rangeX, 1); //roughly 24 H1 bars per day
          half = MathRound(max1/2) + 1;                                 // starts looking half-way from previous peak [not only lower peaks]
      int max2 = iHighest(NULL, 0, MODE_HIGH, half, 1);
