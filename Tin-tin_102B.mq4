@@ -59,12 +59,12 @@ if ( isNewDay ) {
       H  = High[max1] - (max1) * deltaYh;
       L  = Low[min1] + (min1) * deltaYl;
       N = NormalizeDouble((H + L) / 2, 5);
-      if ( H > L && (Close[1] - H) > F * pips2dbl   )  {
+      if ( H > L && (Close[1] - H) > F * pips2dbl && Close[2] < H + deltaYh  )  {
             ShortBuy = true;
             LongExit = true;  
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 2); // Zajmuje dwie pozycje(loty)
       }
-      if ( H > L && (L - Close[1]) > F * pips2dbl   )  {
+      if ( H > L && (L - Close[1]) > F * pips2dbl && Close[2] > L - deltaYl  )  {
             LongBuy = true;
             ShortExit = true; 
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 2); 
