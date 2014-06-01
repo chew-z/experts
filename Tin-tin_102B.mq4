@@ -3,13 +3,13 @@
 // v 1.02B - fade trendlines                                         |
 // 1) exit @ N or the other trendline?                               |
 // 2) N seems safer, lower drawdown but misses                       |
-// 3) This version is linked to trendline_2b indicator               |                                                                 |
+// 3) This version is linked to trendline_2b indicator               |
 //+------------------------------------------------------------------+
 #property copyright "Tin-tin Pullback © 2012, 2013, 2014 chew-z"
 #include <TradeContext.mq4>
 #include <TradeTools.mqh>
 #include <stdlib.mqh>
-extern int F = 25;
+extern int F = 5;
 int magic_number_1 = 10701267;
 int StopLevel;
 string AlertText ="";
@@ -59,12 +59,12 @@ if ( isNewDay ) {
       H  = High[max1] - (max1) * deltaYh;
       L  = Low[min1] + (min1) * deltaYl;
       N = NormalizeDouble((H + L) / 2, 5);
-      if ( H > L && (Close[1] - H) > F * pips2dbl && Close[2] < H + deltaYh  )  {
+      if ( H > L && (High[1] - H) > F * pips2dbl && (Close[2] - H - deltaYh) <  F * pips2dbl)  {
             ShortBuy = true;
             LongExit = true;  
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 2); // Zajmuje dwie pozycje(loty)
       }
-      if ( H > L && (L - Close[1]) > F * pips2dbl && Close[2] > L - deltaYl  )  {
+      if ( H > L && (L - Low[1]) > F * pips2dbl && (Close[2] - L + deltaYl) > F * pips2dbl )  {
             LongBuy = true;
             ShortExit = true; 
             GlobalVariableSet(StringConcatenate(Symbol(), magic_number_1), 2); 
